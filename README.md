@@ -37,7 +37,14 @@ Command Prompt:
 copy .env.example .env
 ```
 
-At minimum, configure `ANTHROPIC_API_KEY` and `TAVILY_API_KEY` in `.env`.
+Generate the required API keys from the provider dashboards, configuring any rate or token limits as necessary:
+
+- Create an [Anthropic API key](https://console.anthropic.com/settings/keys)
+  for Claude. In `.env`, set `ANTHROPIC_API_KEY` to this value.
+- Create a [Tavily API key](https://app.tavily.com/home) for public web search. In `.env`, set `TAVILY_API_KEY` to this value.
+
+At minimum, configure both `ANTHROPIC_API_KEY` and `TAVILY_API_KEY` in `.env`.
+Keep these values private and never commit `.env` to the repository.
 
 ### 3. Build and run
 
@@ -46,8 +53,7 @@ docker build -t research-agent .
 docker run --rm --name research-agent --env-file .env -p 8000:8000 -p 8050:8050 research-agent
 ```
 
-Open the UI at **http://localhost:8050**. Do not open `http://0.0.0.0:8050`;
-`0.0.0.0` is the server bind address, not a browser address.
+Open the UI at **http://localhost:8050**.
 
 The FastAPI documentation is available at **http://localhost:8000/docs**.
 
@@ -68,17 +74,14 @@ for local development, demonstrations, and trusted internal use. It is not a
 complete internet-facing service:
 
 - The container runs the API and UI as two processes in one container.
-- The UI currently starts with Dash debug mode enabled.
+- The UI currently starts with Dash debug mode disabled, it can be enabled by modifyed the app.run() call in app/ui.py.
 - The API has no built-in authentication, rate limiting, or user management.
-- The container does not terminate TLS. Put it behind a TLS-enabled reverse
-  proxy or load balancer before exposing it publicly.
 - Do not publish port `8000` publicly unless direct API access is required.
 - Keep `.env` outside the image and use a secret manager in hosted production.
 
 These limitations matter if the application is later adapted for public use.
 In that case, use a process supervisor or separate containers for the API and
-UI, disable debug mode, add authentication and rate limiting, configure
-HTTPS, restrict CORS to the UI origin, and add health checks, centralized
+UI,  add authentication and rate limiting, and add health checks, centralized
 logs, monitoring, backups, and resource limits.
 
 To run the included container in the background for local or internal use:
@@ -224,11 +227,3 @@ Edit `validate_final_response()` in `app/validation.py`.
 Edit `SYSTEM_PROMPT` in `app/agent.py`. The system prompt controls agent
 behavior, but it should not be relied upon for hard security or authorization
 constraints.
-
-## Important
-
-This is a minimal research assistant and is not a production security
-architecture by default. Before handling sensitive or public traffic, add
-authentication, rate limiting, request-size limits, stronger secret
-management, source/domain allowlists, audit logging, monitoring, and security
-testing. Review generated research and citations before relying on them.

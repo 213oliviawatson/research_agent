@@ -70,14 +70,14 @@ def test_multiple_tool_results_share_one_anthropic_user_turn():
     assert {item["tool_use_id"] for item in follow_up_messages[-1]["content"]} == {"one", "two"}
 
 
-def test_agent_stops_requesting_search_after_budget():
+def test_agent_stops_requesting_search_after_configured_budget():
     class FakeMessages:
         def __init__(self):
             self.calls = []
 
         def create(self, **kwargs):
             self.calls.append(kwargs)
-            if len(self.calls) <= 2:
+            if len(self.calls) <= 10:
                 return SimpleNamespace(content=[SimpleNamespace(
                     type="tool_use",
                     id=f"call-{len(self.calls)}",
@@ -104,7 +104,7 @@ def test_agent_stops_requesting_search_after_budget():
 
     assert "=== PI SUMMARY ===" in answer
     assert "No public evidence found for the candidate." in answer
-    assert len(fake_messages.calls) == 3
+    assert len(fake_messages.calls) == 11
     assert fake_messages.calls[-1]["tools"] == []
 
 

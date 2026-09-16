@@ -105,9 +105,10 @@ class Agent:
             },
         ]
 
-        # Bound paid search calls and reasoning turns for each request.
-        max_iterations = 5
-        max_search_calls = 2
+        max_search_calls = 10
+        # Allow one final model call after the last permitted search to
+        # synthesize the collected evidence with tools disabled.
+        max_iterations = max_search_calls + 1
         search_calls = 0
 
         for _ in range(max_iterations):

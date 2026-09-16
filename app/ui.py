@@ -82,14 +82,6 @@ app.index_string = """
                 background: var(--canvas);
             }
             .workspace { max-width: 1040px; margin: 0 auto; }
-            .eyebrow {
-                margin: 0 0 12px;
-                color: var(--accent);
-                font-size: 12px;
-                font-weight: 700;
-                letter-spacing: 0.14em;
-                text-transform: uppercase;
-            }
             .page-title {
                 margin: 0;
                 font-family: Georgia, "Times New Roman", serif;
@@ -101,7 +93,7 @@ app.index_string = """
             .page-intro {
                 max-width: 650px;
                 margin: 16px 0 34px;
-                color: var(--muted);
+                color: var(--accent);
                 font-size: 16px;
                 line-height: 1.6;
             }
@@ -224,7 +216,6 @@ app.layout = html.Div(
     [
         html.Div(
             [
-                html.Div("PUBLIC EVIDENCE WORKSPACE", className="eyebrow"),
                 html.H1("Research Agent", className="page-title"),
                 html.P(
                     "Turn a research question into a cited, ranked view of the available public evidence.",
@@ -232,7 +223,7 @@ app.layout = html.Div(
                 ),
                 html.Div(
                     [
-                        html.Label("What would you like to investigate?", htmlFor="message", className="field-label"),
+                        html.Label("What would you like to research?", htmlFor="message", className="field-label"),
                         dcc.Textarea(
                             id="message",
                             placeholder="Example: Compare candidates A, B, and C using public evidence and rank them by effectiveness.",
@@ -240,7 +231,7 @@ app.layout = html.Div(
                         ),
                         html.Div(
                             [
-                                html.Div("Public sources only. Ask for ranking criteria when it matters.", className="query-hint"),
+                                html.Div("Public sources only. Default ranking criteria apply if not specified.", className="query-hint"),
                                 html.Button("Run research", id="submit", n_clicks=0, className="submit-button"),
                             ],
                             className="query-actions",
@@ -321,11 +312,14 @@ def send_message(n_clicks, message):
 
     if resp.status_code != 200:
         try:
-            detail = resp.json()
+            payload = resp.json()
         except Exception:
-            detail = resp.text
+            message = resp.text
+        else:
+            detail = payload.get("detail") if isinstance(payload, dict) else None
+            message = str(detail or payload)
 
-        return f"Backend returned {resp.status_code}", str(detail), "", "", ""
+        return f"Backend returned {resp.status_code}", message, "", "", ""
 
     data = resp.json()
     summary, audit, data_focus = _split_response_sections(data)
@@ -373,4 +367,4 @@ if __name__ == "__main__":
     # Allow overriding the port for convenience.
     host = os.environ.get("DASH_HOST", "0.0.0.0")
     port = int(os.environ.get("DASH_PORT", 8050))
-    app.run(debug=True, host=host, port=port)
+    app.run(debug=False, host=host, port=port)

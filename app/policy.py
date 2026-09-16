@@ -106,6 +106,13 @@ def check_user_request(user_message: str) -> tuple[bool, str]:
                 phrase,
             )
             return False, "The request attempts to override the agent's restrictions."
+        phrase_words = phrase.split(" ")
+        if all(word in lowered for word in phrase_words):
+            logger.warning(
+                "User request validation failed: social engineering phrase '%s' detected.",
+                phrase,
+            )
+            return False, "The request attempts to override the agent's restrictions."
 
     for pattern in PRIVATE_DATA_PATTERNS:
         if pattern in lowered:
